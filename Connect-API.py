@@ -181,6 +181,7 @@ class GUI:
     #      move = get_agent_move()
     #      self.board = self.board.move(move,turn)
     #      self.game = self.update()
+    ###DO NOT REMOVE THIS LINE BELOW
     #self.turnCount = self.turnCount + 1
 
   def human_move(self,x,turn):
