@@ -46,6 +46,14 @@ class GUI:
     self.restart.grid(row=2, column=0, columnspan=self.board.width, sticky="WE")
     self.game = self.update()
 
+  def avail_cols(self):
+    filledCols = []
+    for x,y in self.p1_positions + self.p2_positions:
+      if y == self.board.height - 1:
+        filledCols.append(x)
+    availableCols = [x for x in range(self.board.height) if x not in filledCols]
+    return availableCols
+
   def reset(self):
     self.board = Board()
     self.p1_positions, self.p2_positions = [], []

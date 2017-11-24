@@ -15,24 +15,16 @@ class PlayerType(Enum):
 class RandomAgent():
     def move(self,obj,turn):
         if (obj.turnCount == 0):
-            move = random.choice(self.avail_cols(obj))
+            move = random.choice(obj.avail_cols())
             obj.board = obj.board.move(move,turn)
             obj.game = obj.update()
         else:
             for i in range(2):
                 if obj.game==False:
-                    move = random.choice(self.avail_cols(obj))
+                    move = random.choice(obj.avail_cols())
                     obj.board = obj.board.move(move,turn)
                     obj.game = obj.update()
         obj.turnCount = obj.turnCount + 1
-
-    def avail_cols(self,obj):
-        filledCols = []
-        for x,y in obj.p1_positions + obj.p2_positions:
-            if y == obj.board.height - 1:
-                filledCols.append(x)
-        availableCols = [x for x in range(obj.board.height) if x not in filledCols]
-        return availableCols
 
 class Human():
     def move(self,obj,x,turn):
