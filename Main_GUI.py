@@ -4,99 +4,8 @@ from copy import deepcopy
 import random
 from enum import Enum
 import time
-
-class Board:
-  def __init__(self,other=None):
-    self.player = 'X'
-    self.opponent = 'O'
-    self.empty = '.'
-    self.width = 10
-    self.height = 10
-    self.connect = 4
-    self.fields = {}
-    for y in range(self.height):
-      for x in range(self.width):
-        self.fields[x,y] = self.empty
-    if other:
-      self.__dict__ = deepcopy(other.__dict__)
-
-  def move(self,x,turn):
-    board = Board(self)
-    for y in range(board.height):
-      if board.fields[x,y] == board.empty:
-        if turn == 1:
-          board.fields[x,y] = board.player
-          break
-        else:
-          board.fields[x,y] = board.opponent
-          break
-    return board
-
-  def check(self, moves):
-    if len(moves)<self.connect:
-      return []
-    #Left Diagonal
-    for i in moves:
-      winning = []
-      x,y = i
-      winning.append(i)
-      for z in range(1,self.connect):
-        next = (x+z,y+z)
-        if next in moves:
-          winning.append(next)
-        else:
-          break
-      if len(winning) == self.connect:
-        return winning
-
-    #Right Diagonal
-    for i in moves:
-      winning = []
-      x,y = i
-      winning.append(i)
-      for z in range(1,self.connect):
-        next = (x+z,y-z)
-        if next in moves:
-          winning.append(next)
-        else:
-          break
-      if len(winning) == self.connect:
-        return winning
-
-    #Vertical
-    for i in moves:
-      winning = []
-      x,y = i
-      winning.append(i)
-      for z in range(1,self.connect):
-        next = (x,y+z)
-        if next in moves:
-          winning.append(next)
-        else:
-          break
-      if len(winning) == self.connect:
-        return winning
-
-    #Horizontal
-    for i in moves:
-      winning = []
-      x,y = i
-      winning.append(i)
-      for z in range(1,self.connect):
-        next = (x+z,y)
-        if next in moves:
-          winning.append(next)
-        else:
-          break
-      if len(winning) == self.connect:
-        return winning
-    return []
-
-
-class PlayerType(Enum):
-    Human = 1
-    Bot = 2
-    Random = 3
+from PlayerAgent import *
+from ConnectBoard import *
 
 class GUI:
   def __init__(self):
@@ -112,7 +21,6 @@ class GUI:
     self.game = False
     self.inputx = []
     self.turnCount = 0
-    self.auto_delay = 2
     self.p1_positions, self.p2_positions = [], []
     self.p1 = PlayerType(int(input('Player 1 is :\n1. Human \n2. Bot \n3. Random \n\n')))
     self.p2 = PlayerType(int(input('\nPlayer 2 is :\n1. Bot \n2. Random \n\n'))+1)
@@ -126,7 +34,6 @@ class GUI:
     if not self.human_flag:
       for x in range(self.board.width):
         self.buttons[x]['state'] = 'disabled'
-
       handler = lambda: self.autoplay()
       self.auto = Button(self.app, command=handler, text='Next')
       self.auto.grid(row=3, column=0, columnspan=self.board.width, sticky="WE")
@@ -148,49 +55,6 @@ class GUI:
     self.game = self.update()
     self.turnCount = 0
 
-  def avail_cols(self):
-    filledCols = []
-    for x,y in self.p1_positions + self.p2_positions:
-      if y == self.board.height - 1:
-        filledCols.append(x)
-    availableCols = [x for x in range(self.board.height) if x not in filledCols]
-    return availableCols
-
-  def random_move(self,turn):
-    if (self.turnCount == 0):
-      move = random.choice(self.avail_cols())
-      self.board = self.board.move(move,turn)
-      self.game = self.update()
-    else:
-      for i in range(2):
-        if self.game==False:
-          move = random.choice(self.avail_cols())
-          self.board = self.board.move(move,turn)
-          self.game = self.update()
-    self.turnCount = self.turnCount + 1
-
-  def agent_move(self, turn):
-    pass
-    #if (self.turnCount == 0):
-    #  move = get_agent_move()
-    #  self.board = self.board.move(move,turn)
-    #  self.game = self.update()
-    #else:
-    #  for i in range(2):
-    #    if self.game==False:
-    #      move = get_agent_move()
-    #      self.board = self.board.move(move,turn)
-    #      self.game = self.update()
-    ###DO NOT REMOVE THIS LINE BELOW
-    #self.turnCount = self.turnCount + 1
-
-  def human_move(self,x,turn):
-    for i in x:
-      if self.game==False:
-        self.board = self.board.move(i,turn)
-        self.game = self.update()
-    self.turnCount = self.turnCount + 1
-
   def input(self,x):
     self.game = self.update()
     if self.game==False:
@@ -205,28 +69,37 @@ class GUI:
   def move(self,x=None):
     if self.game==False:
       if self.p1.name=="Human":
-        self.human_move(x,1)
+        human = Human()
+        human.move(self,x,1)
       elif self.p1.name=="Bot":
-        self.agent_move(1)
+        bot = Bot()
+        bot.move(self,1)
       else:
-        self.random_move(1)
+        rand_obj = RandomAgent()
+        rand_obj.move(self,1)
     if self.game==False:
       if self.p2.name=="Bot":
-        self.agent_move(2)
+        bot = Bot()
+        bot.move(self,2)
       else:
-        self.random_move(2)
+        rand_obj = RandomAgent()
+        rand_obj.move(self,2)
 
   def autoplay(self):
     if self.game==False:
       if self.p1.name=="Bot":
-        self.agent_move(1)
+        bot = Bot()
+        bot.move(self,1)
       else:
-        self.random_move(1)
+        rand_obj = RandomAgent()
+        rand_obj.move(self,1)
     if self.game==False:
       if self.p2.name=="Bot":
-        self.agent_move(2)
+        bot = Bot()
+        bot.move(self,2)
       else:
-        self.random_move(2)
+        rand_obj = RandomAgent()
+        rand_obj.move(self,2)
 
   def update(self):
     for (x,y) in self.board.fields:
